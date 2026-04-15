@@ -45,17 +45,17 @@ PII_PATTERNS: tuple[PIIPattern, ...] = (
     ),
     PIIPattern(
         name="kenyan_national_id",
-        regex=r"\b\d{7,8}\b",
+        regex=r"\b(?:KE[-\s]?)?\d{8}(?:\d)?\b",
         classification=DataClassification.RESTRICTED,
     ),
     PIIPattern(
         name="south_african_id",
-        regex=r"\b\d{13}\b",
+        regex=r"\b(?:[0-9]{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01]))\d{7}\b",
         classification=DataClassification.RESTRICTED,
     ),
     PIIPattern(
         name="nigerian_bvn",
-        regex=r"\b\d{11}\b",
+        regex=r"\b(?:BVN[-\s:]?\s*)?\d{11}\b",
         classification=DataClassification.RESTRICTED,
     ),
     PIIPattern(

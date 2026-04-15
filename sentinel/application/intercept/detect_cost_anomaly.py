@@ -43,8 +43,10 @@ class DetectCostAnomalyUseCase:
         self._event_bus = event_bus
         self._cost_per_ms = cost_per_ms
         self._anomaly_ratio = anomaly_ratio_threshold
-        # Rolling baseline per agent (accumulated over invocations)
+        # Rolling baseline per agent (bounded to last 20 observations per agent,
+        # max 10k agents tracked to prevent unbounded memory growth)
         self._baselines: dict[str, list[float]] = defaultdict(list)
+        self._max_tracked_agents = 10_000
 
     async def execute(self, agent_id: str) -> CostAnomalyDTO:
         tool_calls = await self._tool_call_repo.get_by_agent_id(agent_id)
@@ -71,10 +73,15 @@ class DetectCostAnomalyUseCase:
         expected_cost = sum(baseline_costs) / len(baseline_costs)
         ratio = current_cost / expected_cost if expected_cost > 0 else 0.0
 
-        # Update rolling baseline (keep last 20 observations)
+        # Update rolling baseline (keep last 20 observations per agent)
         self._baselines[agent_id].append(current_cost)
         if len(self._baselines[agent_id]) > 20:
             self._baselines[agent_id] = self._baselines[agent_id][-20:]
+
+        # Evict oldest agents if too many tracked
+        if len(self._baselines) > self._max_tracked_agents:
+            oldest = next(iter(self._baselines))
+            del self._baselines[oldest]
 
         if ratio < self._anomaly_ratio:
             return CostAnomalyDTO(

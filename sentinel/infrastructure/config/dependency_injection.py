@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from sentinel.domain.services.anomaly_detection import AnomalyDetectionService
 from sentinel.domain.services.behavioural_baseline import BehaviouralBaselineService
+from sentinel.domain.services.metrics import MetricsService
 from sentinel.domain.services.pii_detection import PIIDetectionService
 from sentinel.domain.services.threat_assessment import ThreatAssessmentService
 from sentinel.infrastructure.adapters.in_memory_event_bus import InMemoryEventBus
@@ -73,6 +74,7 @@ class Container:
     anomaly_detection_service: AnomalyDetectionService
     behavioural_baseline_service: BehaviouralBaselineService
     threat_assessment_service: ThreatAssessmentService
+    metrics_service: MetricsService
 
 
 def create_container(settings: SentinelSettings | None = None) -> Container:
@@ -92,6 +94,7 @@ def create_container(settings: SentinelSettings | None = None) -> Container:
     anomaly_detection_service = AnomalyDetectionService()
     behavioural_baseline_service = BehaviouralBaselineService()
     threat_assessment_service = ThreatAssessmentService()
+    metrics_service = MetricsService()
 
     # Infrastructure adapters
     rate_limiter = InMemoryRateLimiter(
@@ -134,4 +137,5 @@ def create_container(settings: SentinelSettings | None = None) -> Container:
         anomaly_detection_service=anomaly_detection_service,
         behavioural_baseline_service=behavioural_baseline_service,
         threat_assessment_service=threat_assessment_service,
+        metrics_service=metrics_service,
     )

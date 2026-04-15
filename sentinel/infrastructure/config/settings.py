@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings
 
 
@@ -10,6 +11,8 @@ class SentinelSettings(BaseSettings):
 
     Values are loaded from environment variables prefixed with ``SENTINEL_``
     (e.g. ``SENTINEL_TIER1_THRESHOLD=70.0``).
+
+    Secrets use SecretStr to prevent accidental exposure in logs/repr.
     """
 
     model_config = {"env_prefix": "SENTINEL_"}
@@ -25,17 +28,18 @@ class SentinelSettings(BaseSettings):
     # SIEM integration target
     siem_target: str = "logging"  # "logging" | "chronicle" | "splunk" | "datadog"
     siem_endpoint: str = ""
-    siem_api_key: str = ""
+    siem_api_key: SecretStr = SecretStr("")
 
     # Notification
     notification_target: str = "logging"  # "logging" | "pagerduty" | "slack"
-    slack_webhook_url: str = ""
-    pagerduty_routing_key: str = ""
+    slack_webhook_url: SecretStr = SecretStr("")
+    pagerduty_routing_key: SecretStr = SecretStr("")
 
     # MCP server
     mcp_transport: str = "stdio"
     mcp_host: str = "127.0.0.1"
     mcp_port: int = 8765
+    mcp_api_key: str = ""  # API key for privileged MCP operations (isolate)
 
     # Behavioural analysis
     baseline_window_size: int = 1000
@@ -43,3 +47,7 @@ class SentinelSettings(BaseSettings):
 
     # PII detection
     pii_redaction_enabled: bool = True
+
+    # Data residency
+    data_residency_enabled: bool = False
+    allowed_regions: list[str] = []

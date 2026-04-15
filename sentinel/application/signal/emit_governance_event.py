@@ -9,11 +9,19 @@ Architectural Intent:
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from sentinel.domain.events.base import DomainEvent
+from sentinel.domain.events.base import DomainEvent as _BaseDomainEvent
 from sentinel.domain.ports.event_bus import EventBusPort
 from sentinel.application.dtos.schemas import GovernanceEventDTO
+
+
+@dataclass(frozen=True)
+class _GovernanceEmittedEvent(_BaseDomainEvent):
+    event_type: str = ""
+    severity: str = ""
 
 
 class EmitGovernanceEventUseCase:
@@ -74,16 +82,3 @@ class EmitGovernanceEventUseCase:
             description=f"Governance event from {event_type_name}",
             evidence={"event_id": domain_event.event_id},
         )
-
-
-# ── Internal domain event for governance emission ────────────────────────
-
-from dataclasses import dataclass
-
-from sentinel.domain.events.base import DomainEvent as _BaseDomainEvent
-
-
-@dataclass(frozen=True)
-class _GovernanceEmittedEvent(_BaseDomainEvent):
-    event_type: str = ""
-    severity: str = ""

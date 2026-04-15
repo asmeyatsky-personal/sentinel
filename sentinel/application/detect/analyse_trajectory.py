@@ -14,7 +14,6 @@ Parallelisation Notes:
 
 from __future__ import annotations
 
-import asyncio
 from uuid import uuid4
 
 from sentinel.domain.entities.threat import Threat, ThreatCategory
@@ -24,7 +23,6 @@ from sentinel.domain.ports.event_bus import EventBusPort
 from sentinel.domain.ports.repositories import ToolCallRepositoryPort, ThreatRepositoryPort
 from sentinel.domain.services.anomaly_detection import AnomalyDetectionService
 from sentinel.domain.services.behavioural_baseline import BehaviouralBaselineService
-from sentinel.domain.value_objects.detection_score import DetectionScore
 from sentinel.application.dtos.schemas import DetectionResultDTO
 
 

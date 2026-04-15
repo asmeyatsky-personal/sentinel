@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Callable
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
 from sentinel.infrastructure.config.dependency_injection import Container
 

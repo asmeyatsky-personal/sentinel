@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 
 from sentinel.domain.entities.threat import (
     Threat,

@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from sentinel.domain.entities.agent import Agent, AgentStatus
+from sentinel.domain.entities.agent import Agent
 from sentinel.domain.entities.threat import Threat, ThreatCategory, ThreatStatus
 from sentinel.domain.value_objects.detection_score import DetectionScore
 from sentinel.domain.value_objects.threat_level import ThreatLevel

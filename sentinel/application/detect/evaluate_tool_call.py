@@ -17,7 +17,7 @@ from __future__ import annotations
 import asyncio
 from uuid import uuid4
 
-from sentinel.domain.entities.threat import Threat, ThreatCategory, ThreatStatus
+from sentinel.domain.entities.threat import Threat, ThreatCategory
 from sentinel.domain.events.detection_events import CapabilityViolationDetectedEvent
 from sentinel.domain.ports.detection import RuleEnginePort
 from sentinel.domain.ports.event_bus import EventBusPort

@@ -5,17 +5,17 @@ from __future__ import annotations
 from typing import Callable
 
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, constr
 
 from sentinel.infrastructure.config.dependency_injection import Container
 
 
 class EvaluateToolCallRequest(BaseModel):
-    tool_call_id: str
-    agent_id: str
-    server_name: str
-    tool_name: str
-    arguments: dict
+    tool_call_id: constr(min_length=1, max_length=256)  # type: ignore[valid-type]
+    agent_id: constr(min_length=1, max_length=256)  # type: ignore[valid-type]
+    server_name: constr(min_length=1, max_length=256)  # type: ignore[valid-type]
+    tool_name: constr(min_length=1, max_length=256)  # type: ignore[valid-type]
+    arguments: dict = Field(default_factory=dict, max_length=100)
 
 
 class AnalyseTrajectoryRequest(BaseModel):

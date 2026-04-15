@@ -4,6 +4,11 @@ Uses the ``mcp`` Python SDK (FastMCP) to register tools and resources that
 allow external agents and operators to query threat posture, investigate
 agents, and trigger containment actions.
 
+MCP Integration:
+- Tools: sentinel.status, sentinel.investigate, sentinel.isolate, sentinel.threats
+- Resources: sentinel://agents, sentinel://threats
+- Auth: API key required for write operations (isolate)
+
 Usage::
 
     container = create_container()
@@ -17,6 +22,24 @@ import json
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+
+
+class MCPAuthError(Exception):
+    """Raised when an MCP tool call fails authentication."""
+
+
+def _validate_auth(api_key: str, container: Any) -> None:
+    """Validate API key for privileged MCP operations.
+
+    Raises MCPAuthError if the key is missing or invalid.
+    """
+    expected_key = getattr(container, "settings", None)
+    if expected_key is not None:
+        configured_key = expected_key.mcp_api_key
+        if configured_key and api_key != configured_key:
+            raise MCPAuthError("Invalid API key for privileged operation")
+        if configured_key and not api_key:
+            raise MCPAuthError("API key required for privileged operation")
 
 
 def create_sentinel_mcp_server(container: Any) -> FastMCP:
@@ -34,12 +57,13 @@ def create_sentinel_mcp_server(container: Any) -> FastMCP:
         instructions=(
             "SENTINEL is an agentic security platform. "
             "Use these tools to monitor agent behaviour, investigate threats, "
-            "and trigger containment actions."
+            "and trigger containment actions. "
+            "Write operations (isolate) require an api_key parameter."
         ),
     )
 
     # ------------------------------------------------------------------
-    # Tools
+    # Tools — read operations (no auth required)
     # ------------------------------------------------------------------
 
     @server.tool(name="sentinel.status", description="Return current threat posture summary.")
@@ -106,32 +130,6 @@ def create_sentinel_mcp_server(container: Any) -> FastMCP:
         return json.dumps(result, indent=2, default=str)
 
     @server.tool(
-        name="sentinel.isolate",
-        description="Isolate an agent by ID, preventing further tool calls.",
-    )
-    async def isolate(agent_id: str, reason: str = "Manual isolation via MCP") -> str:
-        agent = await container.agent_repository.get_by_id(agent_id)
-        if agent is None:
-            return json.dumps({"error": f"Agent {agent_id} not found"})
-
-        try:
-            isolated_agent = agent.isolate(reason)
-        except ValueError as exc:
-            return json.dumps({"error": str(exc)})
-
-        await container.agent_repository.save(isolated_agent)
-
-        # Publish domain events if event bus is available
-        if isolated_agent.domain_events:
-            await container.event_bus.publish(list(isolated_agent.domain_events))
-
-        return json.dumps({
-            "status": "isolated",
-            "agent_id": agent_id,
-            "reason": reason,
-        })
-
-    @server.tool(
         name="sentinel.threats",
         description="List all open (unresolved) threats.",
     )
@@ -151,6 +149,49 @@ def create_sentinel_mcp_server(container: Any) -> FastMCP:
             for t in open_threats
         ]
         return json.dumps(result, indent=2, default=str)
+
+    # ------------------------------------------------------------------
+    # Tools — write operations (auth required)
+    # ------------------------------------------------------------------
+
+    @server.tool(
+        name="sentinel.isolate",
+        description=(
+            "Isolate an agent by ID, preventing further tool calls. "
+            "Requires api_key parameter for authentication."
+        ),
+    )
+    async def isolate(
+        agent_id: str,
+        reason: str = "Manual isolation via MCP",
+        api_key: str = "",
+    ) -> str:
+        try:
+            _validate_auth(api_key, container)
+        except MCPAuthError as exc:
+            return json.dumps({"error": str(exc), "authenticated": False})
+
+        agent = await container.agent_repository.get_by_id(agent_id)
+        if agent is None:
+            return json.dumps({"error": f"Agent {agent_id} not found"})
+
+        try:
+            isolated_agent = agent.isolate(reason)
+        except ValueError as exc:
+            return json.dumps({"error": str(exc)})
+
+        await container.agent_repository.save(isolated_agent)
+
+        # Publish domain events if event bus is available
+        if isolated_agent.domain_events:
+            await container.event_bus.publish(list(isolated_agent.domain_events))
+
+        return json.dumps({
+            "status": "isolated",
+            "agent_id": agent_id,
+            "reason": reason,
+            "authenticated": True,
+        })
 
     # ------------------------------------------------------------------
     # Resources

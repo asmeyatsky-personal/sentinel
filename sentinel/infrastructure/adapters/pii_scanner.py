@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 
 from sentinel.domain.ports.detection import PIIMatch
 from sentinel.domain.services.pii_detection import PIIDetectionService
