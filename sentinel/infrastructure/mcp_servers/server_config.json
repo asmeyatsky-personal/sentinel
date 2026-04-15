@@ -1,0 +1,40 @@
+{
+  "mcpServers": {
+    "sentinel": {
+      "command": "python",
+      "args": ["-m", "sentinel.infrastructure.mcp_servers.sentinel_server"],
+      "transport": "stdio",
+      "description": "SENTINEL agentic security platform — monitors agent behaviour, detects threats, and triggers containment.",
+      "tools": [
+        {
+          "name": "sentinel.status",
+          "description": "Return current threat posture summary."
+        },
+        {
+          "name": "sentinel.investigate",
+          "description": "Investigate a specific agent by ID."
+        },
+        {
+          "name": "sentinel.isolate",
+          "description": "Isolate an agent by ID, preventing further tool calls."
+        },
+        {
+          "name": "sentinel.threats",
+          "description": "List all open (unresolved) threats."
+        }
+      ],
+      "resources": [
+        {
+          "uri": "sentinel://agents",
+          "name": "Monitored Agents",
+          "description": "List of all agents currently monitored by SENTINEL."
+        },
+        {
+          "uri": "sentinel://threats",
+          "name": "Open Threats",
+          "description": "List of all currently open threats."
+        }
+      ]
+    }
+  }
+}
